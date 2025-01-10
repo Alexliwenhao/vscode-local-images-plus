@@ -1,44 +1,45 @@
-interface Item<T> {
-  value: T;
-  attempts: number;
-}
-// Queue that keep only unique values and counts attempts
 export class UniqueQueue<T> {
-  private queue = new Array<Item<T>>();
+    private items: Map<string, T>;
+    private maxAttempts: number;
+    private attempts: Map<string, number>;
 
-  public push(value: T, attempts: number) {
-    if (attempts < 1) {
-      console.error("Triyng to enqueue item with attempts < 1");
-      return;
+    constructor(maxAttempts: number = 3) {
+        this.items = new Map();
+        this.maxAttempts = maxAttempts;
+        this.attempts = new Map();
     }
-    this.remove(value);
 
-    this.queue.push({ value, attempts });
-  }
+    push(item: T, id?: string): void {
+        const itemId = id || JSON.stringify(item);
+        if (!this.items.has(itemId)) {
+            this.items.set(itemId, item);
+            this.attempts.set(itemId, 0);
+        }
+    }
 
-  public remove(value: T) {
-    this.queue = this.queue.filter((item) => item.value !== value);
-  }
+    pop(): T | undefined {
+        const entries = Array.from(this.items.entries());
+        if (entries.length === 0) return undefined;
 
-  public iterationQueue() {
-    const extractIteration = (
-      prev: { queue: UniqueQueue<T>; iteration: Array<T> },
-      curr: Item<T>
-    ) => {
-      prev.iteration.push(curr.value);
-      if (curr.attempts > 1) {
-        prev.queue.push(curr.value, curr.attempts - 1);
-      }
+        const [id, item] = entries[0];
+        const attemptCount = this.attempts.get(id) || 0;
 
-      return prev;
-    };
+        if (attemptCount >= this.maxAttempts) {
+            this.items.delete(id);
+            this.attempts.delete(id);
+            return undefined;
+        }
 
-    const { queue, iteration } = this.queue.reduce(extractIteration, {
-      queue: new UniqueQueue<T>(),
-      iteration: [],
-    });
+        this.attempts.set(id, attemptCount + 1);
+        return item;
+    }
 
-    this.queue = queue.queue;
-    return iteration;
-  }
+    clear(): void {
+        this.items.clear();
+        this.attempts.clear();
+    }
+
+    size(): number {
+        return this.items.size;
+    }
 }

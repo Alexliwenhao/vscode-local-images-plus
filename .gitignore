@@ -1,19 +1,8 @@
-/build/
-
-# Intellij
-*.iml
-.idea
-
-# npm
-node_modules
-
-# build
-main.js
+.vscode/**
+.vscode-test/**
+dist/**
+node_modules/**
+*.vsix
+.DS_Store
+*.js
 *.js.map
-
-# obsidian
-data.json
-
-# build
-obsidian_local_images_plus_latest.7z
-test.sh
